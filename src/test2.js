@@ -1,31 +1,47 @@
-const canvas = document.querySelector('.myCanvas');
-      const width = canvas.width = window.innerWidth;
-      const height = canvas.height = window.innerHeight;
-      const ctx = canvas.getContext('2d');
+const canvas = document.querySelector('#canvas');
+const width = canvas.width = window.innerWidth;
+const height = canvas.height = window.innerHeight;
+const ctx = canvas.getContext('2d');
 
-      ctx.fillStyle = 'rgb(0,0,0)';
-      ctx.fillRect(0,0,width,height);
 
-      function degToRad(degrees) {
-        return degrees * Math.PI / 180;
-      };
+ctx.fillStyle = 'rgb(0,0,0)';
+ctx.fillRect(0,0,width,height);
 
-      ctx.fillStyle = 'rgb(255,0,0)';
-      ctx.beginPath();
-      ctx.moveTo(50,50);
-      ctx.lineTo(150,50);
-      let triHeight = 50 * Math.tan(degToRad(60));
-      ctx.lineTo(100,50+triHeight);
-      ctx.lineTo(50,50);
-      ctx.fill();
+var ball = {
+    x: 0,
+    y: 0,
+    radius: 25,
+    color: 'blue',
+    draw: function() {
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2, true);
+        ctx.closePath();
+        ctx.fillStyle = this.color;
+        ctx.fill();
+    }
+};
 
-      ctx.fillStyle = 'rgb(0,0,255)';
-      ctx.beginPath();
-      ctx.arc(150, 106, 50, degToRad(0), degToRad(360), false);
-      ctx.fill()
+function clear() {
+  ctx.fillStyle = 'rgba(0, 0, 0)';
+  ctx.fillRect(0,0,width,height);
+}
 
-      ctx.fillStyle = 'yellow';
-      ctx.beginPath();
-      ctx.arc(200, 106, 50, degToRad(-45), degToRad(45), true);
-      ctx.lineTo(200,106);
-      ctx.fill();
+function degToRad(degrees) {
+  return degrees * Math.PI / 180;
+};
+
+function setText(text, x, y){
+    ctx.strokeStyle = 'white';
+    ctx.lineWidth = 1;
+    ctx.font = '20px arial';
+    ctx.strokeText(text, x, y);
+}
+
+canvas.addEventListener('mousemove', function(e) {
+    clear();
+    ball.x = e.clientX;
+    ball.y = e.clientY;
+    ball.draw();
+});
+
+ball.draw()
