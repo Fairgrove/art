@@ -31,8 +31,8 @@ const textCtx = textCanvas.getContext('2d');
 var marker = {
     x: 100,
     y: 100,
-    vx: 5,
-    vy: 2,
+    vx: 0.7,
+    vy: 1,
     radius: 20,
     color: 'blue',
     draw: function() {
