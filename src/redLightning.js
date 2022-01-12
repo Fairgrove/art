@@ -29,8 +29,8 @@ const textCtx = textCanvas.getContext('2d');
 */
 
 var marker = {
-    x: 100,
-    y: 100,
+    x: Math.floor(Math.random()*(width-30)),
+    y: Math.floor(Math.random()*(height-30)),
     vx: 0.7,
     vy: 1,
     radius: 20,
