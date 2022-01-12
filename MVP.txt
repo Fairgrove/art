@@ -1,2 +1,5 @@
 basically made it so I can overlap canvases
 https://webglfundamentals.org/webgl/lessons/webgl-text-canvas2d.html
+
+gravity: based on this video <3
+https://www.youtube.com/watch?v=7axImc1sxa0
