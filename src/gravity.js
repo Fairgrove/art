@@ -1,6 +1,6 @@
 const width = window.innerWidth;
 const height = window.innerHeight;
-const universeG = 0.05;
+const universeG = 0.001;
 
 // BACKGROUND
 const bckCanvas = document.querySelector("#background");
@@ -50,15 +50,27 @@ function normalise(x1, x2){
     return ((x1 - x2) - min)/(min-max)
 }
 
+function norm(x1, x2){
+    x = x1-x2
+    if (x < 0){
+        x = -1
+    } else if (x > 0) {
+        x = 1
+    } else {
+        x = 0
+    }
+    return x
+}
+
 class Planet{
     constructor(x = 50 +Math.floor(Math.random()*(width-50)),
         y = 50 + Math.floor(Math.random()*(height-50)),
         radius = 15 + Math.floor(Math.random()*50)) {
 
-        this.pos = [x, y]
+        this.pos = [x, height - y]
 
         this.radius = radius
-        this.mass = this.radius * Math.PI
+        this.mass = this.radius**2 * Math.PI
         this.initalVelocity = [1,1]
         this.currentVelocity = [0,0]
 
@@ -88,25 +100,25 @@ class Planet{
         for (var i = 0; i < bodies.length; i++) {
             if (bodies[i] != this) {
                 // distance remains squared as it as that
-                var distance = ((this.pos[0] - bodies[i].pos[0]) + (this.pos[1] - bodies[i].pos[1]))
+                var distance = Math.abs((this.pos[0] - bodies[i].pos[0]) + (this.pos[1] - bodies[i].pos[1]))
 
                 var forceDir = [
-                    normalise(bodies[i].pos[0], this.pos[0]), // x
-                    normalise(bodies[i].pos[1], this.pos[1]), // y
+                    norm(bodies[i].pos[0], this.pos[0]), // x
+                    norm(height - bodies[i].pos[1], height - this.pos[1]), // y
                 ]
                 var force = [
-                    forceDir[0] * universeG * this.mass * bodies[i].mass / distance,
-                    forceDir[1] * universeG * this.mass * bodies[i].mass / distance
+                    forceDir[0] * (universeG * this.mass * bodies[i].mass / distance),
+                    forceDir[1] * (universeG * this.mass * bodies[i].mass / distance)
                 ]
-                this.currentVelocity[0] = -force[0] / this.mass
-                this.currentVelocity[1] = -force[1] / this.mass
+                this.currentVelocity[0] = force[0] / this.mass
+                this.currentVelocity[1] = force[1] / this.mass
                 this.text = String(this.currentVelocity)
             }
         }
     }
 
     collisionCheck(bodies){
-
+        //is my radius within the radius of any other object?
     }
 
     updatePosition(){
@@ -126,7 +138,7 @@ function createSolarSystem(nBodies){
     p1 = new Planet(width/2, height/2, 80)
     bodies.push(p1)
 
-    p2 = new Planet((width/2)+150, (height/2)+150, 30)
+    p2 = new Planet((width/2)-150, (height/2)+150, 30)
     bodies.push(p2)
 
     return bodies
@@ -138,15 +150,12 @@ function update(){
     clearAll()
 
     for (var i = 0; i < bodies.length; i++) {
-        // calc velocity
         bodies[i].updateVelocity(bodies)
-        // update positions
+    }
+    for (var i = 0; i < bodies.length; i++) {
         bodies[i].updatePosition()
-
-        // draw all celestial bodies
         bodies[i].draw()
     }
-
     window.requestAnimationFrame(update)
 }
 
