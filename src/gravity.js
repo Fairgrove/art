@@ -1,6 +1,6 @@
 const width = window.innerWidth;
 const height = window.innerHeight;
-const universeG = 0.001;
+const universeG = 10;
 
 // BACKGROUND
 const bckCanvas = document.querySelector("#background");
@@ -16,7 +16,7 @@ const canvas = document.querySelector('#canvas');
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 const ctx = canvas.getContext('2d');
-ctx.filter = 'blur(0px)'
+ctx.filter = 'blur(7px)'
 
 // TEXT
 const textCanvas = document.querySelector("#text");
@@ -71,11 +71,14 @@ class Planet{
 
         this.radius = radius
         this.mass = this.radius**2 * Math.PI
-        this.initalVelocity = [1,1]
+        this.initalVelocity = [
+            Math.floor(Math.random() * 20) - 10,
+            Math.floor(Math.random() * 20) - 10,
+        ]
         this.currentVelocity = [0,0]
 
         this.color = randomColor()
-        this.text = 'hi'
+        this.text = ''
     }
 
     wake(){
@@ -99,20 +102,26 @@ class Planet{
     updateVelocity(bodies){
         for (var i = 0; i < bodies.length; i++) {
             if (bodies[i] != this) {
-                // distance remains squared as it as that
-                var distance = Math.abs((this.pos[0] - bodies[i].pos[0]) + (this.pos[1] - bodies[i].pos[1]))
+                var distance = Math.sqrt((bodies[i].pos[0] - this.pos[0])**2 + (bodies[i].pos[1] - this.pos[1])**2)
 
                 var forceDir = [
-                    norm(bodies[i].pos[0], this.pos[0]), // x
-                    -norm(bodies[i].pos[1], height - this.pos[1]), // y
-                ]
+                   norm(bodies[i].pos[0], this.pos[0]), // x
+                   -norm(bodies[i].pos[1], height - this.pos[1]), // y
+               ]
+
                 var force = [
-                    forceDir[0] * (universeG * this.mass * bodies[i].mass / distance),
-                    forceDir[1] * (universeG * this.mass * bodies[i].mass / distance)
+                    forceDir[0] * universeG * this.mass * bodies[i].mass / distance**2,
+                    forceDir[1] * universeG * this.mass * bodies[i].mass / distance**2
                 ]
-                this.currentVelocity[0] = force[0] / this.mass
-                this.currentVelocity[1] = force[1] / this.mass
-                this.text = String(this.currentVelocity)
+
+                var acceleration = [
+                    force[0] / this.mass,
+                    force[1] / this.mass
+                ]
+
+                this.currentVelocity[0] += acceleration[0] * 0.1
+                this.currentVelocity[1] += acceleration[1] * 0.1
+                //this.text = String(this.currentVelocity)
             }
         }
     }
@@ -122,24 +131,24 @@ class Planet{
     }
 
     updatePosition(){
-        this.pos[0] += this.currentVelocity[0]
-        this.pos[1] += this.currentVelocity[1]
+        this.pos[0] += this.currentVelocity[0] * 0.1
+        this.pos[1] += this.currentVelocity[1] * 0.1
     }
 }
 
 function createSolarSystem(nBodies){
     var bodies = []
-    // for (var i = 0; i < nBodies; i++) {
-    //     //p = new Planet(pos[i][0], pos[i][1])
-    //     p = new Planet()
-    //     bodies.push(p)
-    // }
+    for (var i = 0; i < nBodies; i++) {
+        //p = new Planet(pos[i][0], pos[i][1])
+        p = new Planet()
+        bodies.push(p)
+    }
 
-    p1 = new Planet(width/2, height/2, 80)
-    bodies.push(p1)
-
-    p2 = new Planet((width/2)+150, (height/2)+90, 30)
-    bodies.push(p2)
+    // p1 = new Planet(width/2, height/2, 80)
+    // bodies.push(p1)
+    //
+    // p2 = new Planet((width/2)+150, (height/2)+150, 30)
+    // bodies.push(p2)
 
     return bodies
 }
@@ -159,10 +168,7 @@ function update(){
     window.requestAnimationFrame(update)
 }
 
+for (var i = 0; i < bodies.length; i++) {
+    bodies[i].wake()
+}
 window.requestAnimationFrame(update)
-
-textCtx.strokeStyle = 'white';
-textCtx.lineWidth = 1;
-textCtx.font = '20px arial';
-textCtx.textAlign = "center";
-textCtx.strokeText(' ', width/2, height/2);
