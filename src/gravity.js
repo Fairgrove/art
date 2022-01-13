@@ -1,6 +1,7 @@
 const width = window.innerWidth;
 const height = window.innerHeight;
-const universeG = 10;
+const universeG = 5;
+const timeStep = 0.1
 
 // BACKGROUND
 const bckCanvas = document.querySelector("#background");
@@ -16,7 +17,7 @@ const canvas = document.querySelector('#canvas');
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 const ctx = canvas.getContext('2d');
-ctx.filter = 'blur(7px)'
+ctx.filter = 'blur(0px)'
 
 // TEXT
 const textCanvas = document.querySelector("#text");
@@ -63,22 +64,27 @@ function norm(x1, x2){
 }
 
 class Planet{
-    constructor(x = 50 +Math.floor(Math.random()*(width-50)),
+    constructor(
+        id,
+        x = 50 +Math.floor(Math.random()*(width-50)),
         y = 50 + Math.floor(Math.random()*(height-50)),
-        radius = 15 + Math.floor(Math.random()*50)) {
-
+        radius = 15 + Math.floor(Math.random()*50),
+        initalVelocity = [
+            Math.floor(Math.random() * 20) - 10,
+            Math.floor(Math.random() * 20) - 10,
+        ]
+    ){
+        this.id = id
         this.pos = [x, y]
 
         this.radius = radius
         this.mass = this.radius**2 * Math.PI
-        this.initalVelocity = [
-            Math.floor(Math.random() * 20) - 10,
-            Math.floor(Math.random() * 20) - 10,
-        ]
+        this.initalVelocity = initalVelocity
         this.currentVelocity = [0,0]
 
         this.color = randomColor()
-        this.text = ''
+        this.life = this.radius
+        this.text = String(this.id)
     }
 
     wake(){
@@ -119,20 +125,29 @@ class Planet{
                     force[1] / this.mass
                 ]
 
-                this.currentVelocity[0] += acceleration[0] * 0.1
-                this.currentVelocity[1] += acceleration[1] * 0.1
+                this.currentVelocity[0] += acceleration[0] * timeStep
+                this.currentVelocity[1] += acceleration[1] * timeStep
                 //this.text = String(this.currentVelocity)
             }
         }
     }
 
     collisionCheck(bodies){
-        //is my radius within the radius of any other object?
+        for (var i = 0; i < bodies.length; i++) {
+            if (bodies[i] != this) {
+                var distance = Math.sqrt((bodies[i].pos[0] - this.pos[0])**2 + (bodies[i].pos[1] - this.pos[1])**2)
+                var collision = this.radius + bodies[i].radius
+                if (distance < collision) {
+                    this.life -= bodies[i].radius
+                    //this.text = String(this.life)
+                }
+            }
+        }
     }
 
     updatePosition(){
-        this.pos[0] += this.currentVelocity[0] * 0.1
-        this.pos[1] += this.currentVelocity[1] * 0.1
+        this.pos[0] += this.currentVelocity[0] * timeStep
+        this.pos[1] += this.currentVelocity[1] * timeStep
     }
 }
 
@@ -140,20 +155,35 @@ function createSolarSystem(nBodies){
     var bodies = []
     for (var i = 0; i < nBodies; i++) {
         //p = new Planet(pos[i][0], pos[i][1])
-        p = new Planet()
+        p = new Planet(i)
         bodies.push(p)
     }
 
-    // p1 = new Planet(width/2, height/2, 80)
+    // p1 = new Planet(0, width/2, height/2, 10, [0,0])
+    // //p1.mass = p1.mass * 4
     // bodies.push(p1)
     //
-    // p2 = new Planet((width/2)+150, (height/2)+150, 30)
+    // p4 = new Planet(1, width/2+100, height/2, 30, [0,0])
+    // bodies.push(p4)
+
+    // p2 = new Planet((width/2)+150, (height/2)+150, 30, [-1,0])
     // bodies.push(p2)
+
+    // p3 = new Planet((width/2), (height/2)+50, 5, [-7.15,0])
+    // bodies.push(p3)
 
     return bodies
 }
 
-bodies = createSolarSystem(2)
+function killPlanets(bodies){
+    for (var i = 0; i < bodies.length; i++) {
+        if (bodies[i].life <= 0) {
+            bodies.splice(i,1)
+        }
+    }
+}
+
+bodies = createSolarSystem(10)
 //bodies[0].wake()
 function update(){
     clearAll()
@@ -163,6 +193,8 @@ function update(){
     }
     for (var i = 0; i < bodies.length; i++) {
         bodies[i].updatePosition()
+        bodies[i].collisionCheck(bodies)
+        killPlanets(bodies)
         bodies[i].draw()
     }
     window.requestAnimationFrame(update)
