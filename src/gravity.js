@@ -67,7 +67,7 @@ class Planet{
         y = 50 + Math.floor(Math.random()*(height-50)),
         radius = 15 + Math.floor(Math.random()*50)) {
 
-        this.pos = [x, height - y]
+        this.pos = [x, y]
 
         this.radius = radius
         this.mass = this.radius**2 * Math.PI
@@ -104,7 +104,7 @@ class Planet{
 
                 var forceDir = [
                     norm(bodies[i].pos[0], this.pos[0]), // x
-                    norm(height - bodies[i].pos[1], height - this.pos[1]), // y
+                    -norm(bodies[i].pos[1], height - this.pos[1]), // y
                 ]
                 var force = [
                     forceDir[0] * (universeG * this.mass * bodies[i].mass / distance),
@@ -138,7 +138,7 @@ function createSolarSystem(nBodies){
     p1 = new Planet(width/2, height/2, 80)
     bodies.push(p1)
 
-    p2 = new Planet((width/2)-150, (height/2)+150, 30)
+    p2 = new Planet((width/2)+150, (height/2)+90, 30)
     bodies.push(p2)
 
     return bodies
