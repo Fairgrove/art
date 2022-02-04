@@ -1,7 +1,7 @@
 const width = window.innerWidth;
 const height = window.innerHeight;
 
-const menu = 1
+let menu = 1
 const nButtons = 3
 const buttonSymbols = ['#', 'Ω', 'N']
 let menuButtons = []
@@ -19,6 +19,7 @@ const cursor = {
     mappedX: 0.5,
     mappedY: 0.5,
     clickX: 0,
+    clickY: 0,
 }
 
 class button{
@@ -70,8 +71,12 @@ class button{
     }
 
     click(){
-        if (menu != this.id){
-            menu = this.id
+        if (cursor.clickX >= this.startX && cursor.clickX <= (this.startX + this.width)){
+            if (cursor.clickY >= this.startY && cursor.clickY <= (this.startY + this.height)) {
+                //if (menu != this.id){
+                    menu = this.id
+                //}
+            }
         }
     }
 }
@@ -101,14 +106,14 @@ function homePage(){
         box.bottomLeft-box.shadowOffset*cursor.mappedY,
         box.topRight+box.shadowOffset,
         box.bottomRight+box.shadowOffset)
-    ctx.fillStyle = 'rgba(0,0,0,0.3)'
+    ctx.fillStyle = 'rgba(0,0,0,0.15)'
     ctx.fill();
 
     ctx.fillStyle  = 'white';
     ctx.textAlign = "center"
     ctx.lineWidth = 1;
     ctx.font = '30px arial';
-    ctx.fillText('Hi :)' + cursor.clickX, width/2, height/2-21);
+    ctx.fillText('Hi :)', width/2, height/2-21);
 
     ctx.fillStyle  = 'white';
     ctx.textAlign = "center"
@@ -120,7 +125,39 @@ function homePage(){
 }
 
 function aboutPage(){
+    const box = {
+        topLeft: (width/2)-270, //-half width
+        bottomLeft: (height/2)-65, //-half height
+        topRight: 540, //width
+        bottomRight: 140, //height
+        shadowOffset: 15,
+    }
 
+    ctx.beginPath();
+    ctx.rect(
+        box.topLeft,
+        box.bottomLeft,
+        box.topRight,
+        box.bottomRight);
+    ctx.fillStyle = 'rgba(0,255,100,0.3)'
+    ctx.fill();
+
+    ctx.beginPath();
+    //ctx.rect((width/2)-275, (height/2)-50, 550, 100);
+    ctx.rect(
+        box.topLeft-box.shadowOffset*cursor.mappedX,
+        box.bottomLeft-box.shadowOffset*cursor.mappedY,
+        box.topRight+box.shadowOffset,
+        box.bottomRight+box.shadowOffset)
+    ctx.fillStyle = 'rgba(0,0,0,0.15)'
+    ctx.fill();
+
+    ctx.fillStyle  = 'white';
+    ctx.textAlign = "center"
+    ctx.lineWidth = 1;
+    ctx.font = '20px verdana';
+    ctx.fillText(' My name is Frederik Fagerlund,', width/2, height/2 +10);
+    ctx.fillText('I make computers go beep boop, professionally', width/2, height/2+35 );
 }
 
 function pagePicker(){
@@ -160,8 +197,12 @@ window.addEventListener("mousemove", (e) => {
 })
 
 window.addEventListener('mouseup', e => {
-    cursor.clickX = Math.random()
+    cursor.clickX = e.offsetX
+    cursor.clickY = e.offsetY
 
+    for (var i = 0; i < menuButtons.length; i++) {
+        menuButtons[i].click()
+    }
     //cursor.clickX = '0'
     //cursor.clickX =  = e.offsetX;
     //y = e.offsetY;
@@ -177,7 +218,3 @@ function update(){
 }
 
 window.requestAnimationFrame(update)
-
-/*
-    V  ART GOES HERE  V
-*/
