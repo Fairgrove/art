@@ -6,6 +6,39 @@ const nButtons = 3
 const buttonSymbols = ['#', 'Ω', 'N']
 let menuButtons = []
 
+const about = [
+    'hej',
+    'I gotta tell you about Jeff.',
+    'Jeff loves mattresses,',
+    'He will, on the reg, just go and get a new one.',
+    'Some days he even gets two, just for the sake of it.',
+    'So, anyway, one day... Jeff doesn\'t show up to the mattress store.',
+    'and we\'re all like, Where TF Jeff at?',
+    'like, you gotta understand, this guy',
+    'I mean...',
+    'He REALLY loves mattresses.',
+    'god only knows what he does with them.',
+    'anyway, Jeff didn\'t come to the mattress store one day',
+    'and everyone was wondering if anything might have happened.',
+    'He died of Corona.',
+    'Moral of the story:',
+    'If you love mattresses, you get corona and die from it',
+    'Just like Jeff did.',
+    'gotta be careful out there.',
+    'but man, that guy was really into mattresses',
+    '...',
+    'Like, perhaps, you don\'t even understand',
+    'It was crazy!',
+    'one time, he gave a whole speech!',
+    'it was about how good his purchase was from the day before.',
+    'But, I digress.',
+    'One must be careful with too much exposure to mattresses',
+    'Because, as it turns out.',
+    'You might end up dead',
+    'in a ditch',
+    'Of corona, of course.',
+]
+
 // MAIN
 const canvas = document.querySelector('#canvas');
 canvas.width = window.innerWidth;
@@ -83,9 +116,9 @@ class button{
 
 function homePage(){
     const box = {
-        topLeft: (width/2)-270, //-half width
+        topLeft: (width/2)-300, //-half width
         bottomLeft: (height/2)-65, //-half height
-        topRight: 540, //width
+        topRight: 600, //width
         bottomRight: 140, //height
         shadowOffset: 15,
     }
@@ -119,17 +152,17 @@ function homePage(){
     ctx.textAlign = "center"
     ctx.lineWidth = 1;
     ctx.font = '20px verdana';
-    ctx.fillText(' My name is Frederik Fagerlund,', width/2, height/2 +10);
-    ctx.fillText('I make computers go beep boop, professionally', width/2, height/2+35 );
+    ctx.fillText('My name is Frederik Fagerlund,', width/2, height/2 +10);
+    ctx.fillText('I make computers go beep boop, (soon) professionally', width/2, height/2+35 );
 
 }
 
 function aboutPage(){
     const box = {
-        topLeft: (width/2)-270, //-half width
-        bottomLeft: (height/2)-65, //-half height
-        topRight: 540, //width
-        bottomRight: 140, //height
+        topLeft: (width/2)-300, //-half width
+        bottomLeft: (height/2)-(24*about.length)/2, //-half height
+        topRight: 600, //width
+        bottomRight: 23*about.length, //height
         shadowOffset: 15,
     }
 
@@ -155,9 +188,12 @@ function aboutPage(){
     ctx.fillStyle  = 'white';
     ctx.textAlign = "center"
     ctx.lineWidth = 1;
-    ctx.font = '20px verdana';
-    ctx.fillText(' My name is Frederik Fagerlund,', width/2, height/2 +10);
-    ctx.fillText('I make computers go beep boop, professionally', width/2, height/2+35 );
+    ctx.font = '15px verdana';
+    for (var i = 0; i < about.length; i++) {
+        ctx.fillText(about[i], width/2, height/2 + (22*(i-(about.length/2))))
+    }
+
+
 }
 
 function pagePicker(){
@@ -203,9 +239,6 @@ window.addEventListener('mouseup', e => {
     for (var i = 0; i < menuButtons.length; i++) {
         menuButtons[i].click()
     }
-    //cursor.clickX = '0'
-    //cursor.clickX =  = e.offsetX;
-    //y = e.offsetY;
 });
 
 
