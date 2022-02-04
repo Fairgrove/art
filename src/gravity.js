@@ -1,7 +1,12 @@
 const width = window.innerWidth;
 const height = window.innerHeight;
-const universeG = 5;
-const timeStep = 0.1
+const universeG = 1;
+const timeIncrease = 0
+const initTimeStep = 0.05
+let timeStep = initTimeStep
+const maxVelocity = 50
+const trailLen = 0
+const trailInterval = 2
 
 // BACKGROUND
 const bckCanvas = document.querySelector("#background");
@@ -17,7 +22,7 @@ const canvas = document.querySelector('#canvas');
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 const ctx = canvas.getContext('2d');
-ctx.filter = 'blur(0px)'
+ctx.filter = 'blur(3px)'
 
 // TEXT
 const textCanvas = document.querySelector("#text");
@@ -31,10 +36,17 @@ function clearAll(){
 }
 
 function randomColor() {
+    rgb = ['rgb','rgba']
     var r = 255*Math.random()|0,
         g = 255*Math.random()|0,
         b = 255*Math.random()|0;
-    return 'rgb(' + r + ',' + g + ',' + b + ')';
+
+    //use for normal color
+    rgb[0] = 'rgb(' + r + ',' + g + ',' + b + ')'
+
+    //intentionally left open to have variable alpha
+    rgb[1] = 'rgba(' + r + ',' + g + ',' + b  + ','
+    return rgb
 }
 
 function normalise(x1, x2){
@@ -76,6 +88,10 @@ class Planet{
     ){
         this.id = id
         this.pos = [x, y]
+        this.inside = true
+
+        this.trail = [[x],[y]]
+        this.trailInterval = 0
 
         this.radius = radius
         this.mass = this.radius**2 * Math.PI
@@ -92,17 +108,21 @@ class Planet{
     }
 
     draw(){
+        //drawing celestial body
         ctx.beginPath();
         ctx.arc(this.pos[0], this.pos[1], this.radius, 0, Math.PI * 2, true);
         ctx.closePath();
-        ctx.fillStyle = this.color;
+        ctx.fillStyle = this.color[0];
         ctx.fill();
 
-        ctx.strokeStyle = 'white';
-        ctx.lineWidth = 1;
-        ctx.font = '20px arial';
-        ctx.textAlign = "center";
-        ctx.strokeText(this.text, this.pos[0], this.pos[1]);
+
+        for (var i = 1; i < this.trail[0].length; i++) {
+            ctx.beginPath();
+            ctx.fillStyle = this.color[1] + (i/this.trail[0].length) + ')'
+            ctx.closePath();
+            ctx.arc(this.trail[0][i], this.trail[1][i], this.radius, 0, Math.PI * 2, true);
+            ctx.fill();
+        }
     }
 
     updateVelocity(bodies){
@@ -127,7 +147,16 @@ class Planet{
 
                 this.currentVelocity[0] += acceleration[0] * timeStep
                 this.currentVelocity[1] += acceleration[1] * timeStep
-                //this.text = String(this.currentVelocity)
+            }
+        }
+        for (var i in this.currentVelocity) {
+            let sign = 1
+            if (this.currentVelocity[i] < 0) {
+                sign = -1
+            }
+
+            if (Math.abs(this.currentVelocity[i]) > maxVelocity) {
+                this.currentVelocity[i] = maxVelocity * sign
             }
         }
     }
@@ -148,6 +177,31 @@ class Planet{
     updatePosition(){
         this.pos[0] += this.currentVelocity[0] * timeStep
         this.pos[1] += this.currentVelocity[1] * timeStep
+
+        //pop the last position of the trail and push the new position
+        this.trailInterval += 1
+        if (this.trailInterval % trailInterval == 0) {
+            if (this.trail[0].length >= trailLen) {
+                this.trail[0].shift()
+                this.trail[1].shift()
+
+                this.trail[0].push(this.pos[0])
+                this.trail[1].push(this.pos[1])
+            } else {
+                this.trail[0].push(this.pos[0])
+                this.trail[1].push(this.pos[1])
+            }
+
+            //check if the celestial body is inside the universe
+            if (this.pos[0] >= width+this.radius
+                || this.pos[0] <= 0-(this.radius)
+                || this.pos[1] >= height+this.radius
+                || this.pos[1] <= 0-(this.radius)) {
+                    this.inside = false
+            } else {
+                this.inside = true
+            }
+        }
     }
 }
 
@@ -184,9 +238,24 @@ function killPlanets(bodies){
 }
 
 bodies = createSolarSystem(10)
-//bodies[0].wake()
+
+function restart(){
+    timeStep = initTimeStep
+    for (var i = 0; i < bodies.length; i++) {
+        bodies.splice(i,1)
+    }
+
+    bodies = createSolarSystem(10)
+
+    for (var i = 0; i < bodies.length; i++) {
+        bodies[i].wake()
+    }
+}
+
 function update(){
     clearAll()
+
+    timeStep += timeIncrease
 
     for (var i = 0; i < bodies.length; i++) {
         bodies[i].updateVelocity(bodies)
@@ -194,13 +263,29 @@ function update(){
     for (var i = 0; i < bodies.length; i++) {
         bodies[i].updatePosition()
         bodies[i].collisionCheck(bodies)
-        killPlanets(bodies)
+        //killPlanets(bodies)
         bodies[i].draw()
     }
+
+    let counter = 0
+    for (var i = 0; i < bodies.length; i++) {
+        if (bodies[i].inside) {
+            counter += 1
+        }
+    }
+
+    // ctx.strokeStyle = 'white';
+    // ctx.lineWidth = 1;
+    // ctx.font = '20px arial';
+    // ctx.textAlign = "center";
+    // ctx.strokeText(counter, 200, 100);
+
+    if (counter == 0) {
+        restart()
+    }
+
     window.requestAnimationFrame(update)
 }
 
-for (var i = 0; i < bodies.length; i++) {
-    bodies[i].wake()
-}
+restart()
 window.requestAnimationFrame(update)
