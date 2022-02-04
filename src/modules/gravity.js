@@ -35,46 +35,6 @@ function clearAll(){
     ctx.fillRect(0,0,width,height);
 }
 
-function randomColor() {
-    rgb = ['rgb','rgba']
-    var r = 255*Math.random()|0,
-        g = 255*Math.random()|0,
-        b = 255*Math.random()|0;
-
-    //use for normal color
-    rgb[0] = 'rgb(' + r + ',' + g + ',' + b + ')'
-
-    //intentionally left open to have variable alpha
-    rgb[1] = 'rgba(' + r + ',' + g + ',' + b  + ','
-    return rgb
-}
-
-function normalise(x1, x2){
-    var min, max = 0
-
-    if (x1 < x2){
-        min = x1
-        max = x2
-    } else {
-        min = x2
-        max = x1
-    }
-
-    return ((x1 - x2) - min)/(min-max)
-}
-
-function norm(x1, x2){
-    x = x1-x2
-    if (x < 0){
-        x = -1
-    } else if (x > 0) {
-        x = 1
-    } else {
-        x = 0
-    }
-    return x
-}
-
 class Planet{
     constructor(
         id,
@@ -213,19 +173,6 @@ function createSolarSystem(nBodies){
         bodies.push(p)
     }
 
-    // p1 = new Planet(0, width/2, height/2, 10, [0,0])
-    // //p1.mass = p1.mass * 4
-    // bodies.push(p1)
-    //
-    // p4 = new Planet(1, width/2+100, height/2, 30, [0,0])
-    // bodies.push(p4)
-
-    // p2 = new Planet((width/2)+150, (height/2)+150, 30, [-1,0])
-    // bodies.push(p2)
-
-    // p3 = new Planet((width/2), (height/2)+50, 5, [-7.15,0])
-    // bodies.push(p3)
-
     return bodies
 }
 
@@ -273,12 +220,6 @@ function update(){
             counter += 1
         }
     }
-
-    // ctx.strokeStyle = 'white';
-    // ctx.lineWidth = 1;
-    // ctx.font = '20px arial';
-    // ctx.textAlign = "center";
-    // ctx.strokeText(counter, 200, 100);
 
     if (counter == 0) {
         restart()
