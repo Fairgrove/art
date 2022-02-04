@@ -5,7 +5,7 @@ let backgroundAnim = 1 + Math.floor(Math.random()*2)
 
 let menu = 1
 const nButtons = 3
-const buttonSymbols = ['#', 'Ω', 'N']
+const buttonSymbols = ['#', 'Ω', 'И']
 let menuButtons = []
 
 const about = [
