@@ -1,6 +1,8 @@
 const width = window.innerWidth;
 const height = window.innerHeight;
 
+let backgroundAnim = 1 + Math.floor(Math.random()*2)
+
 let menu = 1
 const nButtons = 3
 const buttonSymbols = ['#', 'Ω', 'N']
@@ -114,13 +116,40 @@ class button{
     }
 }
 
+function randomColor() {
+    rgb = ['rgb','rgba']
+    var r = 255*Math.random()|0,
+        g = 255*Math.random()|0,
+        b = 255*Math.random()|0;
+
+    //use for normal color
+    rgb[0] = 'rgb(' + r + ',' + g + ',' + b + ')'
+
+    //intentionally left open to have variable alpha
+    // end with " + alpha + ')' "
+    rgb[1] = 'rgba(' + r + ',' + g + ',' + b  + ','
+    return rgb
+}
+
+function findSign(x1, x2){
+    x = x1-x2
+    if (x < 0){
+        x = -1
+    } else if (x > 0) {
+        x = 1
+    } else {
+        x = 0
+    }
+    return x
+}
+
 function homePage(){
     const box = {
         topLeft: (width/2)-300, //-half width
         bottomLeft: (height/2)-65, //-half height
         topRight: 600, //width
         bottomRight: 140, //height
-        shadowOffset: 15,
+        shadowOffset: 20,
     }
 
     ctx.beginPath();
@@ -139,7 +168,7 @@ function homePage(){
         box.bottomLeft-box.shadowOffset*cursor.mappedY,
         box.topRight+box.shadowOffset,
         box.bottomRight+box.shadowOffset)
-    ctx.fillStyle = 'rgba(0,0,0,0.15)'
+    ctx.fillStyle = 'rgba(0,0,0,0.3)'
     ctx.fill();
 
     ctx.fillStyle  = 'white';
@@ -160,10 +189,10 @@ function homePage(){
 function aboutPage(){
     const box = {
         topLeft: (width/2)-300, //-half width
-        bottomLeft: (height/2)-(24*about.length)/2, //-half height
+        bottomLeft: (height/2)-(21*about.length)/2, //-half height
         topRight: 600, //width
         bottomRight: 23*about.length, //height
-        shadowOffset: 15,
+        shadowOffset: 25,
     }
 
     ctx.beginPath();
@@ -190,10 +219,8 @@ function aboutPage(){
     ctx.lineWidth = 1;
     ctx.font = '15px verdana';
     for (var i = 0; i < about.length; i++) {
-        ctx.fillText(about[i], width/2, height/2 + (22*(i-(about.length/2))))
+        ctx.fillText(about[i], width/2, height/2 + 50 + (22*(i-(about.length/2))))
     }
-
-
 }
 
 function pagePicker(){
@@ -215,6 +242,20 @@ function background(){
     ctx.fillRect(0,0,width,height);
 }
 
+function artPicker(){
+    ctx.strokeStyle = 'white';
+    ctx.lineWidth = 1;
+    ctx.font = '20px arial';
+    ctx.textAlign = "center";
+    ctx.strokeText(backgroundAnim, 200, 100);
+
+    if (backgroundAnim == 1){
+        followCursor()
+    } else if (backgroundAnim == 2) {
+        runChaoticGravity()
+    }
+}
+
 //creating buttons
 for (var i = 1; i < 4; i++) {
     menuButtons.push(new button(i, buttonSymbols[i-1]))
@@ -222,7 +263,7 @@ for (var i = 1; i < 4; i++) {
 
 background()
 menuLayer()
-homePage()
+pagePicker()
 
 window.addEventListener("mousemove", (e) => {
     cursor.x = e.clientX;
@@ -244,6 +285,7 @@ window.addEventListener('mouseup', e => {
 
 function update(){
     background()
+    artPicker()
     menuLayer()
     pagePicker()
 
@@ -251,3 +293,270 @@ function update(){
 }
 
 window.requestAnimationFrame(update)
+
+/*
+--------------------------------------------------------------------------------
+    ART GOES HERE
+--------------------------------------------------------------------------------
+*/
+
+/*
+--------------------------------------------------------------------------------
+    Simple Follow Cursor trail
+--------------------------------------------------------------------------------
+*/
+
+let trailLen = 50
+let trail = [[],[]]
+
+function followCursor(){
+    if (trail[0].length >= trailLen) {
+        trail[0].shift()
+        trail[1].shift()
+
+        trail[0].push(cursor.x)
+        trail[1].push(cursor.y)
+    } else {
+        trail[0].push(cursor.x)
+        trail[1].push(cursor.y)
+    }
+
+    ctx.strokeStyle = 'rgb(255, 0, 0)';
+    ctx.beginPath();
+    ctx.lineWidth = 5;
+    //ctx.moveTo(cursor.x, cursor.y);
+
+    for (var i = 1; i < trail[0].length; i++) {
+        ctx.lineTo(trail[0][i], trail[1][i]);
+    }
+
+    ctx.stroke();
+}
+
+
+/*
+--------------------------------------------------------------------------------
+    Chaotic Gravity
+--------------------------------------------------------------------------------
+*/
+
+const universeG = 1;
+const timeIncrease = 0.000001
+const initTimeStep = 0.05
+let timeStep = initTimeStep
+const maxVelocity = 200
+const trailInterval = 2
+let numBodies = 10
+let showTrial = true
+
+class Planet{
+    constructor(
+        id,
+        x = 50 +Math.floor(Math.random()*(width-50)),
+        y = 50 + Math.floor(Math.random()*(height-50)),
+        radius = 15 + Math.floor(Math.random()*50),
+        initalVelocity = [
+            Math.floor(Math.random() * 20) - 10,
+            Math.floor(Math.random() * 20) - 10,
+        ]
+    ){
+        this.id = id
+        this.pos = [x, y]
+        this.inside = true
+
+        this.radius = radius
+        this.mass = this.radius**2 * Math.PI
+        this.initalVelocity = initalVelocity
+        this.currentVelocity = [0,0]
+
+        this.color = randomColor()
+        this.life = this.radius
+        this.text = String(this.id)
+
+        this.trail = [[x],[y]]
+        this.trailInterval = 0
+        this.numTails = 3 + Math.floor(Math.random()*5)
+        this.tailPos = [[],[]]
+        for (var i = 0; i < this.numTails; i++) {
+            x = (i/this.numTails)*2*Math.PI
+            this.tailPos[0].push(this.radius*(Math.cos(x)))
+            this.tailPos[1].push(this.radius*(-Math.sin(x)))
+        }
+    }
+
+    wake(){
+        this.currentVelocity = this.initalVelocity
+    }
+
+    draw(){
+        // drawing trail
+        if (this.id != 0 && showTrial){
+            for (var i = 0; i < this.numTails; i++) {
+                //let tailPos = Math.floor(Math.random()*5)
+                ctx.strokeStyle = this.color[1] + 0.5 + ')'
+                ctx.beginPath();
+                ctx.lineWidth = 5;
+
+                for (var j = 1; j < this.trail[0].length; j++) {
+                    ctx.lineTo(
+                        this.trail[0][j] + this.tailPos[0][i],
+                        this.trail[1][j] + this.tailPos[1][i])
+                }
+
+                ctx.stroke();
+            }
+        }
+
+        //drawing celestial body
+        ctx.beginPath();
+        ctx.arc(this.pos[0], this.pos[1], this.radius, 0, Math.PI * 2, true);
+        ctx.closePath();
+        ctx.fillStyle = this.color[1] + 0.7 + ')'
+        ctx.fill();
+
+    }
+
+    updateVelocity(bodies){
+        for (var i = 0; i < bodies.length; i++) {
+            if (bodies[i] != this) {
+                var distance = Math.sqrt((bodies[i].pos[0] - this.pos[0])**2 + (bodies[i].pos[1] - this.pos[1])**2)
+
+                var forceDir = [
+                   findSign(bodies[i].pos[0], this.pos[0]), // x
+                   -findSign(bodies[i].pos[1], height - this.pos[1]), // y
+               ]
+
+                var force = [
+                    forceDir[0] * universeG * this.mass * bodies[i].mass / distance**2,
+                    forceDir[1] * universeG * this.mass * bodies[i].mass / distance**2
+                ]
+
+                var acceleration = [
+                    force[0] / this.mass,
+                    force[1] / this.mass
+                ]
+
+                this.currentVelocity[0] += acceleration[0] * timeStep
+                this.currentVelocity[1] += acceleration[1] * timeStep
+            }
+        }
+        //capping velocity
+        for (var i in this.currentVelocity) {
+            let sign = 1
+            if (this.currentVelocity[i] < 0) {
+                sign = -1
+            }
+
+            if (Math.abs(this.currentVelocity[i]) > maxVelocity) {
+                this.currentVelocity[i] = maxVelocity * sign
+            }
+        }
+    }
+
+    collisionCheck(bodies){
+        for (var i = 0; i < bodies.length; i++) {
+            if (bodies[i] != this) {
+                var distance = Math.sqrt((bodies[i].pos[0] - this.pos[0])**2 + (bodies[i].pos[1] - this.pos[1])**2)
+                var collision = this.radius + bodies[i].radius
+                if (distance < collision) {
+                    this.life -= bodies[i].radius
+                    //this.text = String(this.life)
+                }
+            }
+        }
+    }
+
+    updatePosition(){
+        this.pos[0] += this.currentVelocity[0] * timeStep
+        this.pos[1] += this.currentVelocity[1] * timeStep
+
+        //pop the last position of the trail and push the new position
+        this.trailInterval += 1
+        if (this.trailInterval % trailInterval == 0) {
+            if (this.trail[0].length >= trailLen) {
+                this.trail[0].shift()
+                this.trail[1].shift()
+
+                this.trail[0].push(this.pos[0])
+                this.trail[1].push(this.pos[1])
+            } else {
+                this.trail[0].push(this.pos[0])
+                this.trail[1].push(this.pos[1])
+            }
+
+            //check if the celestial body is inside the universe
+            if (this.pos[0] >= width+this.radius
+                || this.pos[0] <= 0-(this.radius)
+                || this.pos[1] >= height+this.radius
+                || this.pos[1] <= 0-(this.radius)) {
+                    this.inside = false
+            } else {
+                this.inside = true
+            }
+        }
+    }
+}
+
+function createSolarSystem(nBodies){
+    var bodies = []
+    for (var i = 0; i < nBodies; i++) {
+        //p = new Planet(pos[i][0], pos[i][1])
+        p = new Planet(i)
+        bodies.push(p)
+    }
+
+    bodies[0].mass = 1000000
+    bodies[0].radius = 1
+    bodies[0].pos = [cursor.x, cursor.y]
+    bodies[0].color = 'rgba(0,0,0,0)'
+
+    return bodies
+}
+
+function killPlanets(bodies){
+    for (var i = 0; i < bodies.length; i++) {
+        if (bodies[i].life <= 0) {
+            bodies.splice(i,1)
+        }
+    }
+}
+
+bodies = createSolarSystem(numBodies)
+
+function restart(){
+    timeStep = initTimeStep
+    for (var i = 0; i < bodies.length; i++) {
+        bodies.splice(i,1)
+    }
+
+    bodies = createSolarSystem(numBodies)
+
+    for (var i = 0; i < bodies.length; i++) {
+        bodies[i].wake()
+    }
+}
+
+function runChaoticGravity(){
+    timeStep += timeIncrease
+    bodies[0].pos = [cursor.x, cursor.y]
+    for (var i = 0; i < bodies.length; i++) {
+        bodies[i].updateVelocity(bodies)
+    }
+    for (var i = 0; i < bodies.length; i++) {
+        bodies[i].updatePosition()
+        bodies[i].collisionCheck(bodies)
+        //killPlanets(bodies)
+        bodies[i].draw()
+    }
+
+    let counter = 0
+    for (var i = 0; i < bodies.length; i++) {
+        if (bodies[i].inside && i != 1) {
+            counter += 1
+        }
+    }
+
+    if (counter == 1) {
+        restart()
+    }
+}
